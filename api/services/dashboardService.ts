@@ -36,8 +36,26 @@ export const dashboardService = {
 
   getRecentActivities: (): RecentActivity[] => {
     const activities: RecentActivity[] = []
+    const importedAnimalIds = new Set<string>()
 
-    for (const animal of db.animals.slice(0, 5)) {
+    for (const batch of db.batchImportActivities.slice(0, 3)) {
+      const importer = db.users.find(u => u.id === batch.importedBy)
+      const sampleAnimal = batch.animalIds.length > 0
+        ? db.animals.find(a => a.id === batch.animalIds[0])
+        : undefined
+
+      batch.animalIds.forEach(id => importedAnimalIds.add(id))
+
+      activities.push({
+        id: `activity-batch-${batch.id}`,
+        type: 'batch_import',
+        title: `批量导入：${batch.importedCount}只流浪动物`,
+        description: `${importer?.name || '系统用户'} 批量导入了 ${batch.importedCount} 只动物${sampleAnimal ? `，包括${sampleAnimal.name}等` : ''}`,
+        date: batch.importedAt,
+      })
+    }
+
+    for (const animal of db.animals.filter(a => !importedAnimalIds.has(a.id)).slice(0, 5)) {
       activities.push({
         id: `activity-${animal.id}`,
         type: 'animal',

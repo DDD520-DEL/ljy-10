@@ -271,3 +271,40 @@ export interface ReviewTransferRequest {
   status: 'approved' | 'rejected'
   reviewNotes: string
 }
+
+export interface BatchAnimalImportItem {
+  name: string
+  species: Species
+  breed: string
+  age: string
+  gender: Gender
+  foundLocation: string
+  foundDate: string
+  healthStatus: string
+  description: string
+  personality: string
+  stationId: string
+  photos?: string[]
+}
+
+export interface BatchImportPreviewItem extends BatchAnimalImportItem {
+  rowIndex: number
+  errors: string[]
+  valid: boolean
+}
+
+export interface BatchImportPreviewResponse {
+  total: number
+  validCount: number
+  invalidCount: number
+  items: BatchImportPreviewItem[]
+}
+
+export interface BatchImportResult {
+  success: boolean
+  importedCount: number
+  failedCount: number
+  importedAnimals: Animal[]
+  errors: { rowIndex: number; errors: string[] }[]
+  batchActivityId?: string
+}

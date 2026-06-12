@@ -21,6 +21,9 @@ import type {
   SubmitFollowupRequest,
   CreateTransferRequest,
   ReviewTransferRequest,
+  BatchAnimalImportItem,
+  BatchImportPreviewResponse,
+  BatchImportResult,
 } from '../types'
 
 const BASE_URL = '/api'
@@ -70,6 +73,16 @@ export const animalApi = {
   delete: (id: string) =>
     request<null>(`/animals/${id}`, {
       method: 'DELETE',
+    }),
+  batchPreview: (items: BatchAnimalImportItem[]) =>
+    request<BatchImportPreviewResponse>('/animals/batch/preview', {
+      method: 'POST',
+      body: JSON.stringify({ items }),
+    }),
+  batchImport: (items: BatchAnimalImportItem[], createdBy?: string) =>
+    request<BatchImportResult>('/animals/batch/import', {
+      method: 'POST',
+      body: JSON.stringify({ items, createdBy }),
     }),
 }
 

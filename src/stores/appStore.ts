@@ -10,6 +10,8 @@ import type {
   RecentActivity,
   LifecycleEvent,
   AdoptionAgreement,
+  BatchAnimalImportItem,
+  BatchImportResult,
 } from '../types'
 import {
   dashboardApi,
@@ -66,6 +68,7 @@ interface AppState {
   clearCurrentAnimal: () => void
   clearCurrentApplication: () => void
   clearAgreement: () => void
+  batchImportAnimals: (items: BatchAnimalImportItem[]) => Promise<BatchImportResult | null>
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -403,4 +406,20 @@ export const useAppStore = create<AppState>((set) => ({
   clearCurrentAnimal: () => set({ currentAnimal: null, lifecycleEvents: [] }),
   clearCurrentApplication: () => set({ currentApplication: null }),
   clearAgreement: () => set({ agreement: null }),
+
+  batchImportAnimals: async (items) => {
+    try {
+      set({ loading: true })
+      const res = await animalApi.batchImport(items)
+      if (res.success && res.data) {
+        return res.data
+      }
+      throw new Error(res.error || '导入失败')
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : '导入失败' })
+      return null
+    } finally {
+      set({ loading: false })
+    }
+  },
 }))

@@ -9,6 +9,14 @@ import type {
   TNROperation,
 } from '../types/index.js'
 
+export interface BatchImportActivity {
+  id: string
+  importedCount: number
+  importedAt: string
+  importedBy: string
+  animalIds: string[]
+}
+
 export interface Database {
   stations: Station[]
   users: User[]
@@ -17,6 +25,7 @@ export interface Database {
   agreements: AdoptionAgreement[]
   followups: Followup[]
   transfers: AnimalTransfer[]
+  batchImportActivities: BatchImportActivity[]
 }
 
 export const db: Database = {
@@ -27,6 +36,7 @@ export const db: Database = {
   agreements: [],
   followups: [],
   transfers: [],
+  batchImportActivities: [],
 }
 
 export const generateId = (): string => {

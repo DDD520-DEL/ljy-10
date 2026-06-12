@@ -13,6 +13,11 @@ const typeMap: Record<string, ActivityType> = {
   tnr: 'tnr',
   health: 'health',
   visit: 'visit',
+  animal: 'rescue',
+  application: 'adoption',
+  followup: 'visit',
+  transfer: 'tnr',
+  batch_import: 'batch_import',
 }
 
 export default function Dashboard() {

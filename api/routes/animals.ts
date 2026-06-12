@@ -1,6 +1,16 @@
 import express, { type Request } from 'express'
 import { animalRepository } from '../repositories/animalRepository.js'
-import type { ApiResponse, Animal, CreateAnimalRequest, LifecycleEvent, AnimalStatus, Species } from '../types/index.js'
+import type {
+  ApiResponse,
+  Animal,
+  CreateAnimalRequest,
+  LifecycleEvent,
+  AnimalStatus,
+  Species,
+  BatchAnimalImportItem,
+  BatchImportPreviewResponse,
+  BatchImportResult,
+} from '../types/index.js'
 
 const router = express.Router()
 
@@ -151,6 +161,74 @@ router.delete('/:id', (req, res) => {
     res.status(500).json({
       success: false,
       error: '删除动物信息失败',
+    })
+  }
+})
+
+router.post('/batch/preview', (req, res) => {
+  try {
+    const { items } = req.body as { items: BatchAnimalImportItem[] }
+    if (!items || !Array.isArray(items)) {
+      return res.status(400).json({
+        success: false,
+        error: '请提供有效的导入数据',
+      })
+    }
+
+    const previewItems = items.map((item, index) =>
+      animalRepository.validateImportItem(item, index + 1),
+    )
+
+    const validCount = previewItems.filter(i => i.valid).length
+    const invalidCount = previewItems.length - validCount
+
+    const response: ApiResponse<BatchImportPreviewResponse> = {
+      success: true,
+      data: {
+        total: previewItems.length,
+        validCount,
+        invalidCount,
+        items: previewItems,
+      },
+    }
+    res.json(response)
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: '预览导入数据失败',
+    })
+  }
+})
+
+router.post('/batch/import', (req, res) => {
+  try {
+    const { items, createdBy } = req.body as { items: BatchAnimalImportItem[]; createdBy?: string }
+    if (!items || !Array.isArray(items)) {
+      return res.status(400).json({
+        success: false,
+        error: '请提供有效的导入数据',
+      })
+    }
+
+    const result = animalRepository.batchCreate(items, createdBy || 'user-1')
+
+    const response: ApiResponse<BatchImportResult> = {
+      success: result.success,
+      data: result,
+      message: result.success
+        ? `成功导入 ${result.importedCount} 条记录${result.failedCount > 0 ? `，${result.failedCount} 条失败` : ''}`
+        : '导入失败',
+    }
+
+    if (result.success) {
+      res.status(201).json(response)
+    } else {
+      res.status(400).json(response)
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: '批量导入失败',
     })
   }
 })

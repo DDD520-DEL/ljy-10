@@ -4,6 +4,7 @@ import Dashboard from '@/pages/Dashboard'
 import AnimalList from '@/pages/AnimalList'
 import AnimalForm from '@/pages/AnimalForm'
 import AnimalDetail from '@/pages/AnimalDetail'
+import AnimalBatchImport from '@/pages/AnimalBatchImport'
 import TNROperation from '@/pages/TNROperation'
 import LifecycleTimeline from '@/pages/LifecycleTimeline'
 import AdoptionCenter from '@/pages/AdoptionCenter'
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/animals" element={<AnimalList />} />
           <Route path="/animals/new" element={<AnimalForm />} />
+          <Route path="/animals/batch-import" element={<AnimalBatchImport />} />
           <Route path="/animals/:id" element={<AnimalDetail />} />
           <Route path="/animals/:id/edit" element={<AnimalForm />} />
           <Route path="/animals/:id/tnr" element={<TNROperation />} />

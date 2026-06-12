@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Plus, Filter, X, Cat, Dog, Bird } from 'lucide-react'
+import { Search, Plus, Filter, X, Cat, Dog, Bird, Upload } from 'lucide-react'
 import { useAppStore } from '@/stores/appStore'
 import AnimalCard from '@/components/AnimalCard'
 import LoadingSpinner from '@/components/LoadingSpinner'
@@ -210,13 +210,22 @@ export default function AnimalList() {
         <h2 className="text-lg font-semibold text-[#1C1917]">
           动物列表 <span className="text-sm font-normal text-[#78716C]">共 {animals.length} 条记录</span>
         </h2>
-        <button
-          onClick={() => navigate('/animals/new')}
-          className="flex items-center gap-2 rounded-lg bg-[#F97316] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#EA580C]"
-        >
-          <Plus className="h-4 w-4" />
-          新增动物
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('/animals/batch-import')}
+            className="flex items-center gap-2 rounded-lg border border-[#E7E5E4] bg-white px-4 py-2 text-sm font-medium text-[#44403C] transition-colors hover:bg-[#F5F5F4]"
+          >
+            <Upload className="h-4 w-4" />
+            批量导入
+          </button>
+          <button
+            onClick={() => navigate('/animals/new')}
+            className="flex items-center gap-2 rounded-lg bg-[#F97316] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#EA580C]"
+          >
+            <Plus className="h-4 w-4" />
+            新增动物
+          </button>
+        </div>
       </div>
 
       {adaptedAnimals.length > 0 ? (

@@ -1,8 +1,8 @@
-import { Heart, Syringe, Home, Stethoscope, Calendar } from 'lucide-react'
+import { Heart, Syringe, Home, Stethoscope, Calendar, Database } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { LucideIcon } from 'lucide-react'
 
-export type ActivityType = 'adoption' | 'rescue' | 'tnr' | 'health' | 'visit'
+export type ActivityType = 'adoption' | 'rescue' | 'tnr' | 'health' | 'visit' | 'batch_import'
 
 export interface ActivityItemProps {
   type: ActivityType
@@ -46,6 +46,12 @@ const typeConfig: Record<ActivityType, {
     color: 'text-purple-600',
     bgColor: 'bg-purple-50',
     borderColor: 'border-l-purple-500',
+  },
+  batch_import: {
+    icon: Database,
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-50',
+    borderColor: 'border-l-indigo-500',
   },
 }
 

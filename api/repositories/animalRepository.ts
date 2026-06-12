@@ -1,5 +1,16 @@
 import { db, generateId } from '../data/database.js'
-import type { Animal, CreateAnimalRequest, AnimalPhoto, LifecycleEvent, AnimalStatus } from '../types/index.js'
+import type {
+  Animal,
+  CreateAnimalRequest,
+  AnimalPhoto,
+  LifecycleEvent,
+  AnimalStatus,
+  Species,
+  Gender,
+  BatchAnimalImportItem,
+  BatchImportPreviewItem,
+  BatchImportResult,
+} from '../types/index.js'
 
 export const animalRepository = {
   findAll: (filters?: {
@@ -94,6 +105,134 @@ export const animalRepository = {
 
     db.animals.splice(index, 1)
     return true
+  },
+
+  validateImportItem: (item: BatchAnimalImportItem, rowIndex: number): BatchImportPreviewItem => {
+    const errors: string[] = []
+    const validSpecies: Species[] = ['dog', 'cat', 'other']
+    const validGenders: Gender[] = ['male', 'female', 'unknown']
+
+    if (!item.name || !item.name.trim()) {
+      errors.push('动物名称不能为空')
+    }
+    if (!item.species || !validSpecies.includes(item.species as Species)) {
+      errors.push(`物种必须是: ${validSpecies.join('、')}`)
+    }
+    if (!item.breed) {
+      item.breed = '未知'
+    }
+    if (!item.age || !item.age.trim()) {
+      errors.push('年龄不能为空')
+    }
+    if (!item.gender || !validGenders.includes(item.gender as Gender)) {
+      errors.push(`性别必须是: ${validGenders.join('、')}`)
+    }
+    if (!item.foundLocation || !item.foundLocation.trim()) {
+      errors.push('发现位置不能为空')
+    }
+    if (!item.foundDate) {
+      errors.push('发现日期不能为空')
+    } else {
+      const dateObj = new Date(item.foundDate)
+      if (isNaN(dateObj.getTime())) {
+        errors.push('发现日期格式不正确')
+      }
+    }
+    if (!item.healthStatus || !item.healthStatus.trim()) {
+      errors.push('健康状况不能为空')
+    }
+    if (!item.description) {
+      item.description = ''
+    }
+    if (!item.personality) {
+      item.personality = ''
+    }
+    if (!item.stationId || !item.stationId.trim()) {
+      errors.push('所属站点不能为空')
+    } else {
+      const stationExists = db.stations.some(s => s.id === item.stationId)
+      if (!stationExists) {
+        errors.push(`站点ID "${item.stationId}" 不存在`)
+      }
+    }
+
+    return {
+      ...item,
+      rowIndex,
+      errors,
+      valid: errors.length === 0,
+    }
+  },
+
+  batchCreate: (items: BatchAnimalImportItem[], createdBy: string = 'user-1'): BatchImportResult => {
+    const importedAnimals: Animal[] = []
+    const errors: { rowIndex: number; errors: string[] }[] = []
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      const validated = animalRepository.validateImportItem(item, i + 1)
+
+      if (!validated.valid) {
+        errors.push({ rowIndex: i + 1, errors: validated.errors })
+        continue
+      }
+
+      try {
+        const photos: AnimalPhoto[] = (validated.photos || []).map((url, index) => ({
+          id: generateId(),
+          url,
+          type: index === 0 ? 'found' : 'found',
+          uploadedAt: new Date().toISOString(),
+        }))
+
+        const animal: Animal = {
+          id: generateId(),
+          name: validated.name,
+          species: validated.species,
+          breed: validated.breed || '未知',
+          age: validated.age,
+          gender: validated.gender,
+          foundLocation: validated.foundLocation,
+          foundDate: validated.foundDate,
+          healthStatus: validated.healthStatus,
+          description: validated.description || '',
+          personality: validated.personality || '',
+          status: 'rescued',
+          stationId: validated.stationId,
+          createdBy,
+          photos,
+          tnrProgress: {},
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }
+
+        db.animals.unshift(animal)
+        importedAnimals.push(animal)
+      } catch (e) {
+        errors.push({
+          rowIndex: i + 1,
+          errors: [e instanceof Error ? e.message : '创建失败'],
+        })
+      }
+    }
+
+    const batchActivityId = generateId()
+    db.batchImportActivities.unshift({
+      id: batchActivityId,
+      importedCount: importedAnimals.length,
+      importedAt: new Date().toISOString(),
+      importedBy: createdBy,
+      animalIds: importedAnimals.map(a => a.id),
+    })
+
+    return {
+      success: importedAnimals.length > 0,
+      importedCount: importedAnimals.length,
+      failedCount: errors.length,
+      importedAnimals,
+      errors,
+      batchActivityId,
+    }
   },
 
   getLifecycle: (animalId: string): LifecycleEvent[] => {
